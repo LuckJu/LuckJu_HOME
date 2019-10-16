@@ -1,0 +1,983 @@
+
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+#define XMAP 22			//맵 크기 X
+#define YMAP 14			//맵 크기 Y 
+
+#define COIN 2			//동전 
+#define PLAYER 3		//플레이어 ( 캐릭터 )
+#define MONSTER1 4		//몬스터1
+#define MONSTER2 5		//몬스터2
+#define MONSTER3 6		//몬스터3
+#define PORTAL 8		//포탈 
+#define WALL 9 			//벽
+
+int rrr = 0;					//죽었을때 리겜 여부 
+int pc = 0;						//종료를 위한 카운트 
+int m1 = 0, m2 = 0, m3 = 0;		//몬스터들의 랜덤값	
+int xc = 0, yc = 0;				//코인의 좌표 
+int coin_m = 0;					//코인의 수 
+int por = 0;					//포탈중복 방지를 위한 값 
+int goal = 0;					//목표 점수 
+int clear_check = 0;			//클리어 확인용 
+
+int map[14][22] = {				//기본 맵틀 
+	{9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9},
+	{9,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,9},
+	{9,0,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,9},
+	{9,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,9},
+	{9,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,9},
+	{9,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,9},
+	{9,0,0,0,0,0,0,0,0,0,0,0,0,6,0,0,0,0,4,0,0,9},
+	{9,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,9},
+	{9,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,9},
+	{9,0,0,0,0,0,0,0,0,0,0,0,0,0,5,0,0,0,0,0,0,9},
+	{9,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,9},
+	{9,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,9},
+	{9,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,9},
+	{9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9}
+	};
+
+			
+void MENU_KEY();					//전방 선언 
+void MENU_END();
+void HELP_KEY();
+void COIN_LOC();
+void COIN_CRE();
+
+
+
+void MAPPING(){  					//맵을 그리는 함수
+	
+	int x, y;
+	printf("\n\n\n\n\n\n");
+
+	for( y=0; y<YMAP; y++ ){
+		printf("			");
+		for( x=0; x<XMAP; x++ ){
+			switch(map[y][x]){
+				
+				case 0:
+					printf("  ");
+					break;
+					
+				case 2:
+					printf("★");
+					break;
+
+				case 3:
+					printf("●");
+					break;
+
+				case 4:
+					printf("▲");
+					break;
+
+				case 5:
+					printf("▲");
+					break;
+					
+				case 6:
+					printf("▲");
+					break;
+					
+				case 8:
+					printf("◎");
+					break; 
+
+				case 9:
+					printf("■");
+					break;
+			}
+		}
+	printf("\n");
+	}
+	printf("\n	                    정지 : q 	 목표 : %d	 점수 : %d\n",goal,coin_m); 
+}
+
+
+void MENU_START(){					//게임 메뉴 - 게임시작
+	
+	int CAP = 0;
+	
+	nonekeys:
+		
+	system("cls"); 
+
+	printf("\n\
+	\n\n\n\n\n			■■■■■■■■■■■■■■■■■■■■■■\
+			\n			■                                        ■\
+			\n			■                                        ■\
+			\n			■ ###  ###  ###  #  #   ###   #  #  #  # ■\
+			\n			■ #    # #   #   ## #   #  #  #  #  ## # ■\
+			\n			■ #    # #   #   # ##   ###   #  #  # ## ■\
+			\n			■ ###  ###  ###  #  #   #  #  ####  #  # ■\
+			\n			■                                        ■\
+			\n			■                                        ■\
+			\n			■              - 게임시작 -              ■\
+			\n			■                 조작법                 ■\
+			\n			■                게임종료                ■\
+			\n			■                                        ■\
+			\n			■■■■■■■■■■■■■■■■■■■■■■\
+			\n\
+			\n			     	 ↑ = i    ↓ = k    확인 = j		");
+			
+		if(CAP==1){
+		printf("\n\n		  ※대소문자, 한/영 확인해주세요 (알파벳 소문자로만 실행)※"); 
+	}		
+			
+	char KEY = _getch(); 
+	int c = 0;
+		
+	switch(KEY){
+		
+		case 'k':
+			MENU_KEY();
+			break;
+		case 'j':
+			break;	
+			
+		default:
+			CAP=1;
+			goto nonekeys;
+	}
+}
+
+
+void MENU_KEY(){					//게임 메뉴 - 도움말 
+	
+	nonekeyk:
+	
+	system("cls");
+	
+	printf("\n\
+	\n\n\n\n\n			■■■■■■■■■■■■■■■■■■■■■■\
+			\n			■                                        ■\
+			\n			■                                        ■\
+			\n			■ ###  ###  ###  #  #   ###   #  #  #  # ■\
+			\n			■ #    # #   #   ## #   #  #  #  #  ## # ■\
+			\n			■ #    # #   #   # ##   ###   #  #  # ## ■\
+			\n			■ ###  ###  ###  #  #   #  #  ####  #  # ■\
+			\n			■                                        ■\
+			\n			■                                        ■\
+			\n			■                게임시작                ■\
+			\n			■              -  조작법  -              ■\
+			\n			■                게임종료                ■\
+			\n			■                                        ■\
+			\n			■■■■■■■■■■■■■■■■■■■■■■\
+			\n\
+			\n			     	 ↑ = i    ↓ = k    확인 = j		");
+
+	char KEY = _getch(); 
+	
+	int c = 0;
+		
+	switch(KEY){
+		
+		case 'i':
+			MENU_START();
+			break;
+			
+		case 'k':
+			MENU_END();
+			break;
+		
+		case 'j':
+			HELP_KEY();
+			break;
+			
+		default:
+			goto nonekeyk;
+	}
+}
+
+
+void MENU_END(){					//게임 메뉴 - 게임종료  
+	
+	nonekeye:
+	
+	system("cls");
+	
+	printf("\n\
+	\n\n\n\n\n			■■■■■■■■■■■■■■■■■■■■■■\
+			\n			■                                        ■\
+			\n			■                                        ■\
+			\n			■ ###  ###  ###  #  #   ###   #  #  #  # ■\
+			\n			■ #    # #   #   ## #   #  #  #  #  ## # ■\
+			\n			■ #    # #   #   # ##   ###   #  #  # ## ■\
+			\n			■ ###  ###  ###  #  #   #  #  ####  #  # ■\
+			\n			■                                        ■\
+			\n			■                                        ■\
+			\n			■                게임시작                ■\
+			\n			■                 조작법                 ■\
+			\n			■              - 게임종료 -              ■\
+			\n			■                                        ■\
+			\n			■■■■■■■■■■■■■■■■■■■■■■\
+			\n\
+			\n			     	 ↑ = i    ↓ = k    확인 = j		");
+
+	char KEY = _getch(); 
+	
+	int c = 0;
+	
+	switch(KEY){
+		
+		case 'i':
+			MENU_KEY();
+			break;
+			
+		case 'j':
+			exit(0);	
+		
+		default :
+			goto nonekeye;
+	}
+}
+
+
+void HELP_KEY(){					//조작법 화면 
+	
+	hk:
+	
+	system("cls");
+		
+	printf("\n\
+	\n\n\n\n\n			■■■■■■■■■■■■■■■■■■■■■■\
+			\n			■                   │                    ■\
+			\n			■                   │                    ■\
+			\n			■      ┌───┐       ─┼→      ┌───┐       ■\
+			\n			■      │ ↑│        │        │ i │       ■\
+			\n			■      └───┘       ─┼→      └───┘       ■\
+			\n			■ ┌───┐┌───┐┌───┐   │   ┌───┐┌───┐┌───┐  ■\
+			\n			■ │ ←││ ↓││ →│  ─┼→ │ j ││ k ││ l │  ■\
+			\n			■ └───┘└───┘└───┘   │   └───┘└───┘└───┘  ■\
+			\n			■───────────────────┴────────────────────■\
+			\n			■                                        ■\
+			\n			■              일시 정지 = q             ■\
+			\n			■                                        ■\
+			\n			■■■■■■■■■■■■■■■■■■■■■■\
+			\n\
+			\n			     	          메뉴로 = j 		");
+			
+	char KEY = _getch(); 
+	
+	if(KEY=='j'){
+		MENU_KEY();
+	}
+	else{
+		goto hk;
+	}
+
+}
+
+
+void STORY(){						//목표 
+	
+	system("cls");
+
+	printf("\n\
+	\n\n\n\n\n			■■■■■■■■■■■■■■■■■■■■■■\
+			\n			■                                        ■\
+			\n			■            몬스터를  피해서            ■\
+			\n			■            별을 모아보자!!!            ■\
+			\n			■  ( 목표 점수 달성후                    ■\
+			\n			■             포탈로 들어가면 클리어 )   ■\
+			\n			■                                        ■\
+			\n			■       ● - 캐릭터    ▲ - 몬스터       ■\
+			\n			■       ★ - 점수      ◎ - 포탈         ■\
+			\n			■                                        ■\
+			\n			■                                        ■\
+			\n			■                                        ■\
+			\n			■            ( 시작준비는 아무버튼 입력 )■\
+			\n			■■■■■■■■■■■■■■■■■■■■■■");
+			
+	char START = _getch();
+	
+} 
+
+
+void GOAL_SET(){					//목표 점수 설정 
+	
+	system("cls");
+
+	printf("\n\n\n\n\n\n\n\n\n\n\n			           ( 입력후 엔터 )\n\n			           목표 점수 :");
+	scanf("%d",&goal);
+}
+
+
+void PLA_LOC(int *XP, int *YP){		//플레이어의 위치 좌표를 찾는 함수
+
+	int x,y;
+
+	for( y=0; y<YMAP; y++ ){
+		for( x=0; x<XMAP; x++ ){
+			if(map[y][x]==PLAYER){
+			*XP=x;
+			*YP=y;
+			}
+		}
+	}
+}
+
+
+void MON1_LOC(int *XM1, int *YM1){	//몬스터1의 위치를 찾는 함수
+
+	int x,y;
+
+	for( y=0; y<YMAP; y++ ){
+		for( x=0; x<XMAP; x++ ){
+			if(map[y][x]==MONSTER1){
+				*XM1=x;
+				*YM1=y;
+			}
+		}
+	}
+}
+
+
+void MON2_LOC(int *XM2, int *YM2){	//몬스터2의 위치를 찾는 함수
+
+	int x,y;
+
+	for( y=0; y<YMAP; y++ ){
+		for( x=0; x<XMAP; x++ ){
+			if(map[y][x]==MONSTER2){
+				*XM2=x;
+				*YM2=y;
+			}
+		}
+	}
+}
+
+
+void MON3_LOC(int *XM3, int *YM3){	//몬스터3의 위치를 찾는 함수
+
+	int x,y;
+
+	for( y=0; y<YMAP; y++ ){
+		for( x=0; x<XMAP; x++ ){
+			if(map[y][x]==MONSTER3){
+				*XM3=x;
+				*YM3=y;
+			}
+		}
+	}
+}
+
+
+int MON_MOVE1(int x1, int y1){		//몬스터1이 움직이는 함수
+
+	m1 = rand() % 4 + 1;
+
+	switch(m1){
+
+		case 1:   // 위 
+
+			if(map[y1-1][x1]<COIN){
+				map[y1][x1] = 0;
+				map[y1-1][x1] = MONSTER1;
+			}	break;
+
+
+		case 2:   // 아래 
+
+			if(map[y1+1][x1]<COIN){
+				map[y1][x1] = 0;
+				map[y1+1][x1] = MONSTER1;
+			}	break;
+
+
+		case 3:   // 왼쪽 
+
+			if(map[y1][x1-1]<COIN){
+				map[y1][x1] = 0;
+				map[y1][x1-1] = MONSTER1;
+			}	break;
+
+
+		case 4:   // 오른쪽 
+
+			if(map[y1][x1+1]<COIN){
+				map[y1][x1] = 0;
+				map[y1][x1+1] = MONSTER1;
+			}	break;
+	}   
+}
+
+
+int MON_MOVE2(int x2, int y2){		//몬스터2가 움직이는 함수
+
+	m2 = rand() % 4 + 1;
+
+	switch(m2){
+
+		case 1:   // 위 
+
+			if(map[y2-1][x2]<COIN){
+				map[y2][x2] = 0;
+				map[y2-1][x2] = MONSTER2;
+			}	break;
+
+            
+		case 2:   // 아래 
+
+			if(map[y2+1][x2]<COIN){
+				map[y2][x2] = 0;
+				map[y2+1][x2] = MONSTER2;
+			}	break;
+
+
+		case 3:   // 왼쪽 
+
+			if(map[y2][x2-1]<COIN){
+				map[y2][x2] = 0;
+				map[y2][x2-1] = MONSTER2;
+			}	break;
+
+            
+		case 4:   // 오른쪽 
+
+			if(map[y2][x2+1]<COIN){
+				map[y2][x2] = 0;
+				map[y2][x2+1] = MONSTER2;
+			}	break;
+	}   
+}
+
+
+int MON_MOVE3(int x3, int y3){		//몬스터3이 움직이는 함수
+
+	m3 = rand() % 4 + 1;
+
+	switch(m3){
+
+		case 1:   // 위 
+
+			if(map[y3-1][x3]<COIN){
+				map[y3][x3] = 0;
+				map[y3-1][x3] = MONSTER3;
+			}	break;
+
+            
+		case 2:   // 아래 
+
+			if(map[y3+1][x3]<COIN){
+				map[y3][x3] = 0;
+				map[y3+1][x3] = MONSTER3;
+			}	break;
+
+
+		case 3:   // 왼쪽 
+
+			if(map[y3][x3-1]<COIN){
+				map[y3][x3] = 0;
+				map[y3][x3-1] = MONSTER3;
+			}	break;
+
+            
+		case 4:   // 오른쪽 
+
+			if(map[y3][x3+1]<COIN){
+				map[y3][x3] = 0;
+				map[y3][x3+1] = MONSTER3;
+			}	break;
+	}   
+}
+
+
+int MOVE(int x, int y){				//플레이어가 움직이는 함수
+
+	char KEY = _getch();
+
+	switch(KEY){
+
+		case 'i':   // 위 
+			if(map[y-1][x]==COIN){
+				coin_m++;
+				COIN_LOC();
+				COIN_CRE();
+			}
+			
+			if(map[y-1][x]<PLAYER){
+				map[y][x] = 0;
+				map[y-1][x] = PLAYER;
+			}else if(map[y-1][x]==MONSTER1 || map[y-1][x]==MONSTER2 || map[y-1][x]==MONSTER3){
+				pc+=2;
+			}
+			
+			if(map[y-1][x]==PORTAL){
+				clear_check++;
+			}
+			
+			break;
+
+
+		case 'k':   // 아래 
+			if(map[y+1][x]==COIN){
+				coin_m++;
+				COIN_LOC();
+				COIN_CRE();
+			}
+			
+			if(map[y+1][x]<PLAYER){
+				map[y][x] = 0;
+				map[y+1][x] = PLAYER;
+			}else if(map[y+1][x]==MONSTER1 || map[y+1][x]==MONSTER2 || map[y+1][x]==MONSTER3){
+				pc+=2;
+			}
+			
+			if(map[y+1][x]==PORTAL){
+				clear_check++;
+			}
+			
+			break;
+
+
+		case 'j':   // 왼쪽 
+			if(map[y][x-1]==COIN){
+				coin_m++;
+				COIN_LOC();
+				COIN_CRE();
+			}
+			
+			if(map[y][x-1]<PLAYER){
+				map[y][x] = 0;
+				map[y][x-1] = PLAYER;
+			}else if(map[y][x-1]==MONSTER1 || map[y][x-1]==MONSTER2 || map[y][x-1]==MONSTER3){
+				pc+=2;
+			}
+			
+			if(map[y][x-1]==PORTAL){
+				clear_check++;
+			}
+			
+			break;
+
+
+		case 'l':   // 오른쪽 
+			if(map[y][x+1]==COIN){
+				coin_m++;
+				COIN_LOC();
+				COIN_CRE();
+			}
+			
+			if(map[y][x+1]<PLAYER){
+				map[y][x] = 0;
+				map[y][x+1] = PLAYER;
+			}else if(map[y][x+1]==MONSTER1 || map[y][x+1]==MONSTER2 || map[y][x+1]==MONSTER3){
+				pc+=2;
+			}
+			
+			if(map[y][x+1]==PORTAL){
+				clear_check++;
+			}
+			
+			break;
+
+		
+		case 'q':   // 종료
+			pc++;
+			break;
+	}
+}
+
+
+void COIN_LOC(){					//코인의 위치 찾는 함수 
+	int x,y;
+
+	for( y=0; y<YMAP; y++ ){
+		for( x=0; x<XMAP; x++ ){
+			if(map[y][x]==COIN){
+			xc=x;
+			yc=y;
+			}
+		}
+	}
+}
+
+
+void COIN_CRE(){					//코인을 생성하는 함수 
+	
+	map[yc][xc] = 0;
+
+	int xc = rand() % (XMAP-2) + 1;
+	int yc = rand() % (YMAP-2) + 1;
+	
+	if(map[yc][xc]!=0){
+		COIN_CRE();
+	}else{
+		map[yc][xc] = COIN;
+	}
+}
+
+
+void PORTAL_CRE(){					//포탈을 생성하는 함수 
+
+	if(por==0){
+		
+		por++;
+		
+		int xpo = rand() % (XMAP-2) + 1;
+		int ypo = rand() % (YMAP-2) + 1;
+	
+		if(map[ypo][xpo]!=0){
+			PORTAL_CRE();
+		}else{
+			map[ypo][xpo] = PORTAL;
+		}
+	} 
+}
+
+
+void END(){							//개암 클리어 화면 
+	
+	end1:
+	
+	pc=0;
+	system("cls");
+	printf("\n\
+	\n\n\n\n\n			■■■■■■■■■■■■■■■■■■         ■■         ■\
+			\n			■                                         ■   ■     ■\
+			\n			■   #####  #      #####    #    ####    ■      ■ ■        ■\
+			\n			■   #      #      #       # #   #   #    ■     ■  ■    ■\
+			\n			■   #      #      #####  #####  ####      ■■■■    ■         ■\
+			\n			■   #      #      #      #   #  #   #      ■     ■    ■    ■\
+			\n			■   #####  #####  #####  #   #  #   #       ■      ■    ■\
+			\n			■                                            ■\
+			\n			■    당신은   %d점을 달성하셨습니다. \
+			\n			■                                            ■\
+			\n			■              - 다시시작 -                 ■\
+			\n			■                게임종료                  ■\
+			\n			■                                         ■\
+			\n			■■■■■■■■■■■■■■■■■■■■■■\
+			\n\
+			\n			     	 ↑ = i    ↓ = k    확인 = j		",coin_m);
+			
+	char KEY = _getch();
+	
+	switch (KEY){
+		
+		case 'j':
+			rrr++;
+			break;
+		
+		case 'k':
+			
+			end2:
+			
+			system("cls");			
+			printf("\n\
+	\n\n\n\n\n			■■■■■■■■■■■■■■■■■■         ■■              ■■\
+			\n			■                                         ■                ■\
+			\n			■   #####  #      #####    #    ####    ■            ■  ■            ■\
+			\n			■   #      #      #       # #   #   #   ■          ■    ■          ■\
+			\n			■   #      #      #####  #####  ####    ■        ■■    ■        ■■\
+			\n			■   #      #      #      #   #  #   #    ■     ■    ■   ■     ■    ■\
+			\n			■   #####  #####  #####  #   #  #   #      ■        ■      ■        ■\
+			\n			■                                            ■■■■          ■■■■\
+			\n			■    당신은   %d점을 달성하셨습니다. \
+			\n			■                                            ■\
+			\n			■                다시시작                   ■\
+			\n			■              - 게임종료 -                ■\
+			\n			■                                         ■\
+			\n			■■■■■■■■■■■■■■■■■■■■■■\
+			\n\
+			\n			     	 ↑ = i    ↓ = k    확인 = j		",coin_m);
+			
+			char YEK = _getch();
+			switch (YEK){
+				
+				case 'j':
+					exit(0);
+					
+				case 'i':
+					goto end1;
+				
+				default :
+					goto end2;
+					break;	
+			}
+			break;
+			
+		default :
+			goto end1;
+	}
+} 
+
+
+void DEAD(){						//몬스터에게 죽고 선택 함수 
+	
+	nonekeyd:
+	
+	pc=0;
+	system("cls");
+	printf("\n\
+	\n\n\n\n\n			■■■■■■■■■■■■■■■■■■■■■■\
+			\n			■                                        ■\
+			\n			■       ###       #####     #####        ■\
+			\n			■       #  ##       #       #            ■\
+			\n			■       #   #       #       #####        ■\
+			\n			■       #  ##       #       #            ■\
+			\n			■       ###       #####     #####        ■\
+			\n			■                                        ■\
+			\n			■      당신은 몬스터에게 죽었습니다.     ■\
+			\n			■                                        ■\
+			\n			■              - 다시시작 -              ■\
+			\n			■                게임종료                ■\
+			\n			■                                        ■\
+			\n			■■■■■■■■■■■■■■■■■■■■■■\
+			\n\
+			\n			     	 ↑ = i    ↓ = k    확인 = j		");
+			
+	char KEY = _getch();
+	
+	switch (KEY){
+		
+		case 'j':
+			rrr++;
+			break;
+		
+		case 'k':
+			
+			nonekeyg:
+			
+			system("cls");			
+			printf("\n\
+	\n\n\n\n\n			■■■■■■■■■■■■■■■■■■■■■■\
+			\n			■                                        ■\
+			\n			■       ###       #####     #####        ■\
+			\n			■       #  ##       #       #            ■\
+			\n			■       #   #       #       #####        ■\
+			\n			■       #  ##       #       #            ■\
+			\n			■       ###       #####     #####        ■\
+			\n			■                                        ■\
+			\n			■      당신은 몬스터에게 죽었습니다.     ■\
+			\n			■                                        ■\
+			\n			■                다시시작                ■\
+			\n			■              - 게임종료 -              ■\
+			\n			■                                        ■\
+			\n			■■■■■■■■■■■■■■■■■■■■■■\
+			\n\
+			\n			     	 ↑ = i    ↓ = k    확인 = j		");
+			
+			char YEK = _getch();
+			switch (YEK){
+				
+				case 'j':
+					exit(0);
+					
+				case 'i':
+					goto nonekeyd;
+				
+				default :
+					goto nonekeyg; 
+					break;	
+			}
+			break;
+			
+		default :
+			goto nonekeyd;
+	}
+} 
+
+
+int main(void){					//기본 메인함수로 실행함수
+
+	
+	re:
+		
+	srand((unsigned)time(NULL));
+	
+	int MAP_ORI[14][22] = {		//맵 기본값 
+	{9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9},
+	{9,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,9},
+	{9,0,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,9},
+	{9,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,9},
+	{9,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,9},
+	{9,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,9},
+	{9,0,0,0,0,0,0,0,0,0,0,0,0,6,0,0,0,0,4,0,0,9},
+	{9,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,9},
+	{9,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,9},
+	{9,0,0,0,0,0,0,0,0,0,0,0,0,0,5,0,0,0,0,0,0,9},
+	{9,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,9},
+	{9,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,9},
+	{9,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,9},
+	{9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9}
+	};	
+	
+		
+	int XP = 0, YP = 0; 	//플레이어 위치 좌표 
+	int XM1 = 0, YM1 = 0;	//몬스터1 위치 좌표 
+	int XM2 = 0, YM2 = 0;	//몬스터2 위치 좌표
+	int XM3 = 0, YM3 = 0;	//몬스터3 위치 좌표
+	int i,l;
+	
+	
+	rrr = 0;					//전역 변수 초기화 
+	pc = 0;				 
+	m1 = 0, m2 = 0, m3 = 0;		
+	xc = 0, yc = 0;		
+	coin_m = 0;
+	clear_check = 0;
+	por = 0;
+	goal = 0;
+	
+	for( i=0; i<YMAP; i++ ){
+		for( l=0; l<XMAP; l++ ){
+			map[i][l]=MAP_ORI[i][l];
+		}
+	}
+	
+		MENU_START();
+		STORY();
+		GOAL_SET();
+		
+		while(1){
+		
+		 if(pc==0){
+			
+			mistake:
+						
+			system("cls");					//화면 지우기 
+			MAPPING();						//맵 그리기 
+			PLA_LOC(&XP,&YP);				//플레이어 좌표 찾기 
+			MOVE(XP,YP);					//플레이어 이동 
+		
+			if(clear_check==1){
+				END();
+			}
+		
+			MON1_LOC(&XM1,&YM1);			//몬스터1 좌표 찾기 
+			MON2_LOC(&XM2,&YM2);			//몬스터2 좌표 찾기
+			MON3_LOC(&XM3,&YM3);			//몬스터2 좌표 찾기 
+			MON_MOVE1(XM1,YM1);				//몬스터1 이동 
+			MON_MOVE2(XM2,YM2);				//몬스터2 이동
+			MON_MOVE3(XM3,YM3);				//몬스터3 이동
+			
+			if(coin_m==goal){
+				PORTAL_CRE();
+			}
+			
+		}else if(pc==1){		//'q'눌러서 게임 종료 
+			
+			backpause1:
+			
+			system("cls");
+			printf("\n\
+	\n\n\n\n\n			■■■■■■■■■■■■■■■■■■■■■■\
+			\n			■                                        ■\
+			\n			■  ###      #     #    #   ####   #####  ■\
+			\n			■  #  #    # #    #    #  #       #      ■\
+			\n			■  ###    #####   #    #   ####   #####  ■\
+			\n			■  #     #     #  #    #       #  #      ■\
+			\n			■  #     #     #   ####    ####   #####  ■\
+			\n			■                                        ■\
+			\n			■                                        ■\
+			\n			■              - 계속하기 -              ■\
+			\n			■                처음으로                ■\
+			\n			■                게임종료                ■\
+			\n			■                                        ■\
+			\n			■■■■■■■■■■■■■■■■■■■■■■\
+			\n\
+			\n			     	 ↑ = i    ↓ = k    확인 = j		");
+			
+			char pause1 = _getch();
+			
+			switch (pause1){
+				
+				case 'j':
+					pc--;
+					goto mistake;
+					break;
+				
+				case 'k':	//내려감 이중 스위치 
+					
+					backpause2:
+					
+					system("cls");
+					printf("\n\
+	\n\n\n\n\n			■■■■■■■■■■■■■■■■■■■■■■\
+			\n			■                                        ■\
+			\n			■  ###      #     #    #   ####   #####  ■\
+			\n			■  #  #    # #    #    #  #       #      ■\
+			\n			■  ###    #####   #    #   ####   #####  ■\
+			\n			■  #     #     #  #    #       #  #      ■\
+			\n			■  #     #     #   ####    ####   #####  ■\
+			\n			■                                        ■\
+			\n			■                                        ■\
+			\n			■                계속하기                ■\
+			\n			■              - 처음으로 -              ■\
+			\n			■                게임종료                ■\
+			\n			■                                        ■\
+			\n			■■■■■■■■■■■■■■■■■■■■■■\
+			\n\
+			\n			     	 ↑ = i    ↓ = k    확인 = j		");
+					
+					char pause2 = _getch();
+					switch (pause2){
+						
+						case 'i':
+							goto backpause1;
+							break;
+						
+						case 'j':
+							goto re; 
+							break;
+						
+						case 'k':	//내려가 삼중스위치 
+							
+							backpause3:
+					
+							system("cls");
+							printf("\n\
+	\n\n\n\n\n			■■■■■■■■■■■■■■■■■■■■■■\
+			\n			■                                        ■\
+			\n			■  ###      #     #    #   ####   #####  ■\
+			\n			■  #  #    # #    #    #  #       #      ■\
+			\n			■  ###    #####   #    #   ####   #####  ■\
+			\n			■  #     #     #  #    #       #  #      ■\
+			\n			■  #     #     #   ####    ####   #####  ■\
+			\n			■                                        ■\
+			\n			■                                        ■\
+			\n			■                계속하기                ■\
+			\n			■                처음으로                ■\
+			\n			■              - 게임종료 -              ■\
+			\n			■                                        ■\
+			\n			■■■■■■■■■■■■■■■■■■■■■■\
+			\n\
+			\n			     	 ↑ = i    ↓ = k    확인 = j		");
+						
+						char pause2 = _getch();
+						switch (pause2){
+						
+							case 'i':
+								goto backpause2;
+								break;
+						
+							case 'j':
+								exit(0);
+								break;
+							
+							default :
+								goto backpause3;
+								break;
+						}
+						default :
+							goto backpause2;
+					}
+					break;				
+				
+				default :
+					goto backpause1;
+			}
+		}else if(pc==2){		//몬스터와 만나서 게임 종료 
+			DEAD();
+		}
+		if(rrr==1){
+			goto re;
+		}
+	}
+}
